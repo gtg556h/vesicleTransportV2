@@ -15,7 +15,7 @@ tol = 65E-9;
 %%% Define direction away from cell body, [0,2pi], 0 associated with positive x-direction
 theta0 = 0;   %radians
 
-%%% Constants:
+%% Constants:
 fps = 200;
 dt = 1/fps;
 dx = 162E-9;
@@ -25,6 +25,7 @@ maxTau = 500E-3; %normally 220e-3 (changed this to see effect)
 slopeMin = 100E-3;
 slopeMax = 200E-3;
 smoothFactor = 30;  %% Important for segFind.m
+cutoffRad = 375E-9; %of vesicle size
 
 filename = '2_00min_control_200fps_1_data.mat';
 
@@ -43,7 +44,7 @@ analyze;
 
 
 %%%%%%%%%%!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-analyze = analyze(1:1);
+%analyze = analyze(1:49);
 %%%%%%%%%%!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
@@ -55,6 +56,8 @@ for ii = analyze
     yPosLong{ii} = yPos{ii};
     [MSD{ii},MSDx{ii},MSDy{ii}, meanLogSlope{ii}, tau{ii}, xPos{ii}, yPos{ii}, t{ii}] = continuousMSD(xPos{ii}, yPos{ii}, maxTau, slopeMin, slopeMax, dt);
 end
+
+
 
 %% Raw velocity calculation: Note: smooth vx, vy to get rid of high frequency component
 for ii = analyze
@@ -154,6 +157,14 @@ for ii = analyze
     end
 end
 
+%% Make average radius
+
+for ii = analyze
+    rad(ii)=median(radius{ii})*dx;
+    radVec{ii}=rad(ii)*ones(1,length(state{ii}));
+end
+radAll=horzcat(radVec{analyze})';
+
 %% Long MSD (added 20121107)
 
 for ii = analyze
@@ -165,11 +176,46 @@ end
 lengthMax=max(lengthTemp(analyze));
 longMeanTau=dt:dt:lengthMax*dt;
 
-longMeanMSD=zeros(lengthMax,1);
 for ii=analyze
-    longMeanMSD=longMeanMSD + [longMSD{ii};zeros(lengthMax-lengthTemp(ii),1)]/length(analyze);
+    longMSD{ii}=[longMSD{ii};zeros(lengthMax-lengthTemp(ii),1)];
+    longMSDMat(:,ii)=longMSD{ii};
 end
 
+%% General mean MSD
+for ii = 1:lengthMax
+    nonZeroCount(ii)=length(find(longMSDMat(ii,:)~=0));
+    longMeanMSD(ii)=sum(longMSDMat(ii,:)/nonZeroCount(ii));
+end
+% Small particle MSD
+longMSDMatSmall = longMSDMat;
+for ii = analyze
+    if rad(ii)>cutoffRad
+        longMSDMatSmall(:,ii)=zeros(1,lengthMax);
+    end
+end
+
+for ii = 1:lengthMax
+    nonZeroCount(ii)=length(find(longMSDMatSmall(ii,:)~=0));
+    longMeanMSDSmall(ii)=sum(longMSDMatSmall(ii,:)/nonZeroCount(ii));
+end
+   
+% Large particle MSD
+longMSDMatLarge = longMSDMat;
+for ii = analyze
+    if rad(ii)<= cutoffRad
+        longMSDMatLarge(:,ii)=zeros(1,lengthMax);
+    end
+end
+
+for ii = 1:lengthMax
+    nonZeroCount(ii)=length(find(longMSDMatLarge(ii,:)~=0));
+    longMeanMSDLarge(ii)=sum(longMSDMatLarge(ii,:)/nonZeroCount(ii));
+end
+
+%%
+figure
+loglog(longMeanTau,longMeanMSD,longMeanTau,longMeanMSDSmall,longMeanTau,longMeanMSDLarge)
+legend('mean','small','large')
 
 %% Summary of variables:
 % 

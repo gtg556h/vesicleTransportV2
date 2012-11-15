@@ -32,7 +32,7 @@ for ii = 1:nParticles
     
   %  frameNum{ii} = pData{ii}(:,3);  %%% frame number
   %  particleNum{ii} = pData{ii}(:,4);   %%% particle number (set by PPT)
-  %  radius{ii} = pData{ii}(:,5);    %%% radius of particle in pixels
+    radius{ii} = pData{ii}(:,5);    %%% radius of particle in pixels
  %   jRogers{ii} = pData{ii}(:,6);   %%% See PPT literature
     %eccentricity{ii} = pData{ii}(:,7);  %%% eccentricity.  1 for circle
    % rotation{ii} = pData{ii}(:,8);      %%% Angle of particle for ellipsoid

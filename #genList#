@@ -1,0 +1,5 @@
+#!/bin/bash
+# script to generate list AND play album
+
+find . -name "*.m"|sed 's/\.\///;'|sort>List.lst
+

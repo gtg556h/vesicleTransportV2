@@ -1,0 +1,8 @@
+#!/bin/bash
+# script to generate list AND play album
+
+find . -name "*.mp3"|sed 's/\.\///;'|sort>List.lst
+
+mpg123 -C --list List.lst
+
+rm List.lst

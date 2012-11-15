@@ -1,0 +1,7 @@
+#!/bin/bash
+# script to generate list AND play album
+# To make executable: >>> chmod +x genList
+# To execute:  >>> ./genList
+
+find . -name "*.abc"|sed 's/\.\///;'|sort>List.txt
+
